@@ -41,6 +41,7 @@ const NewMeeting: React.FC = () => {
           );
           setLoaderForCreation(false);
         });
+        
       } catch (error) {
         console.error("Error initializing socket:", error);
         setError("Failed to connect. Please try agian.");
@@ -51,12 +52,6 @@ const NewMeeting: React.FC = () => {
 
     init();
 
-    // get events here
-    ws?.on("room-created", (payload) => {
-      console.log("data from server after creating a room", payload);
-    });
-
-    // emit events here
     return () => {
       closeSocket();
     };
