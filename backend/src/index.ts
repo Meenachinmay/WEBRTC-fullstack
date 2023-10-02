@@ -10,6 +10,10 @@ const app = express();
 
 app.use(cors());
 
+function sleep(ms) {
+   return new Promise(resolve => setTimeout(resolve, ms)); 
+}
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -23,7 +27,8 @@ io.on("connection", (socket) => {
 
   // receiving event for new room join request
   // before creating a new room just get an id for a room and then send back that to client
-  socket.on("create-room", () => {
+  socket.on("create-room", async () => {
+    await sleep(3000);
     const roomID = uuidv4();
     socket.join(roomID);
     socket.emit("room-created", { roomID });

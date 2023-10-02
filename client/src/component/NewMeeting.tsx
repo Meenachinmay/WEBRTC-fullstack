@@ -1,10 +1,12 @@
 import React, { useContext, useEffect, useState } from "react";
 import { Flex, Button } from "@chakra-ui/react";
 import { MeetingRoomContext } from "../context/MeetingRoomContext";
+import { Loader } from "./Loader";
 
 const NewMeeting: React.FC = () => {
   const context = useContext(MeetingRoomContext);
   const [loading, setLoading] = useState(false);
+  const [loaderForCreation, setLoaderForCreation] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (!context) {
@@ -15,6 +17,7 @@ const NewMeeting: React.FC = () => {
 
   const createRoom = () => {
     if (ws) {
+      setLoaderForCreation(true);
       ws.emit("create-room");
     } else {
       throw new Error(
@@ -30,11 +33,13 @@ const NewMeeting: React.FC = () => {
       try {
         const socket = await initializeSocket();
 
+        // above socket initialization is done so handle socket events here
         socket.on("room-created", (payload) => {
           console.log(
             `data from server after creating a room, payload`,
             payload
           );
+          setLoaderForCreation(false);
         });
       } catch (error) {
         console.error("Error initializing socket:", error);
@@ -57,6 +62,22 @@ const NewMeeting: React.FC = () => {
     };
   }, []);
 
+  if (loading) {
+    return (
+      <>
+        <Flex
+          width={"full"}
+          height={"100vh"}
+          margin={"auto"}
+          alignItems={"center"}
+          justifyContent={"center"}
+        >
+          <Loader />
+        </Flex>
+      </>
+    );
+  }
+
   return (
     <>
       <Flex
@@ -77,6 +98,7 @@ const NewMeeting: React.FC = () => {
           onClick={() => createRoom()}
         >
           Join a new meeting
+          { loaderForCreation ? <Loader /> : ''}
         </Button>
       </Flex>
     </>
