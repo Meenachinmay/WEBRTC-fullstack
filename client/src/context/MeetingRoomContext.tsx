@@ -1,4 +1,4 @@
-import { createContext, useCallback, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 import socketIOClient from "socket.io-client";
 import { Socket } from "socket.io-client";
 
@@ -10,7 +10,6 @@ interface MeetingRoomContextProps {
 
 interface MeetingRoomContextType {
   ws: Socket | null;
-  initializeSocket: () => Promise<Socket>;
   closeSocket: () => void;
 }
 
@@ -23,31 +22,38 @@ export const MeetingRoomProvider: React.FC<MeetingRoomContextProps> = ({
 }) => {
   const [ws, setWs] = useState<Socket | null>(null);
 
-  const initializeSocket = useCallback(async () => {
-    return new Promise<Socket>((resolve, reject) => {
-      const socket = socketIOClient(WS);
+  // Automatically initialize the socket connection when the component mounts
+  useEffect(() => {
+    const socket = socketIOClient(WS);
 
-      socket.on("connect", () => {
-        setWs(socket);
-        resolve(socket);
-      });
+    socket.on("connect", () => {
+      setWs(socket);
+    });
 
-      socket.on("connect_error", (error) => {
-        reject(error);
-      });
-    }); 
+    socket.on("connect_error", (error) => {
+      console.error("Socket connection error:", error);
+    });
+
+    // Clean up the socket connection when the provider component unmounts
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
   }, []);
 
-  const closeSocket = useCallback(() => {
+  const closeSocket = () => {
     if (ws) {
       ws.disconnect();
       setWs(null);
     }
-  }, [ws]);
+  };
 
   return (
-    <MeetingRoomContext.Provider value={{ ws, initializeSocket, closeSocket }}>
+    <MeetingRoomContext.Provider value={{ ws, closeSocket }}>
       {children}
     </MeetingRoomContext.Provider>
   );
 };
+
+export default MeetingRoomProvider;
