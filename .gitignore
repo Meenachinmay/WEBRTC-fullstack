@@ -3,3 +3,9 @@
 
 /client/.env
 /backend/.env
+
+/backend/dist
+/backend/logs
+/backend/*.logs
+/backend/*.env
+
