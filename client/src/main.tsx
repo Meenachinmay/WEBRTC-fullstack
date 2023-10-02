@@ -6,11 +6,9 @@ import { ChakraProvider } from "@chakra-ui/react";
 import { MeetingRoomProvider } from "./context/MeetingRoomContext.tsx";
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
     <ChakraProvider>
       <MeetingRoomProvider>
         <App />
       </MeetingRoomProvider>
     </ChakraProvider>
-  </React.StrictMode>
 );

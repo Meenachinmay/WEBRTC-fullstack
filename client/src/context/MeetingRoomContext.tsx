@@ -10,7 +10,7 @@ interface MeetingRoomContextProps {
 
 interface MeetingRoomContextType {
   ws: Socket | null;
-  initializeSocket: () => void;
+  initializeSocket: () => Promise<Socket>;
   closeSocket: () => void;
 }
 
@@ -23,9 +23,19 @@ export const MeetingRoomProvider: React.FC<MeetingRoomContextProps> = ({
 }) => {
   const [ws, setWs] = useState<Socket | null>(null);
 
-  const initializeSocket = useCallback(() => {
-    const socket = socketIOClient(WS);
-    setWs(socket);
+  const initializeSocket = useCallback(async () => {
+    return new Promise<Socket>((resolve, reject) => {
+      const socket = socketIOClient(WS);
+
+      socket.on("connect", () => {
+        setWs(socket);
+        resolve(socket);
+      });
+
+      socket.on("connect_error", (error) => {
+        reject(error);
+      });
+    }); 
   }, []);
 
   const closeSocket = useCallback(() => {
