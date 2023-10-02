@@ -30,12 +30,16 @@ io.on("connection", (socket) => {
   socket.on("create-room", async () => {
     await sleep(3000);
     const roomID = uuidv4();
-    socket.join(roomID);
     socket.emit("room-created", { roomID });
     console.log(
       `User created the room with the connction id ${socket.id}. RoomID: ${roomID} sent back to user.`
     );
   });
+
+  socket.on('room-joined', ({roomId}: {roomId: string}) => {
+    console.log(`User with socketID: ${socket.id} joined the room with roomID ${roomId}.`)
+  })
+
   socket.on("disconnect", () => {
     console.log(`connection is disconnect with ID ${socket.id}`);
   });
