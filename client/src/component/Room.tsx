@@ -16,24 +16,35 @@ const Room: React.FC<IRoomProps> = () => {
   }
 
   // Destructure the ws from the context now that we know it's present
-  const { ws } = context;
+  const { ws, me, isPeerReady, isWsReady } = context;
 
   useEffect(() => {
-    if (!ws) {
-      throw Error("Socket connection is not initialized.");
+    if (!ws || !isWsReady) {
+      return; // Exit early if the socket isn't ready
     }
 
-    ws.emit("joined-room", { roomId: roomId });
+    if (!me) {
+      throw Error("Peer initialization Error.");
+    }
 
-    ws.on("joined-room", (payload: { roomId: any }) => {
+    ws.emit("joined-room", { roomID: roomId, peerID: me._id });
+
+    const handleJoinedRoomFromServer = (payload: { roomId: string }) => {
       console.log(`User joined the room with roomId ${payload.roomId}`);
-    });
-
-    // Clean up listener to prevent memory leaks and multiple listeners on re-renders
-    return () => {
-      ws.off("joined-room");
     };
-  }, [roomId, ws]);
+
+    ws.on("joined-room", handleJoinedRoomFromServer);
+
+    return () => {
+      console.log('cleanup ran');
+      ws.off("joined-room", handleJoinedRoomFromServer);
+    };
+  }, [roomId, ws, me, isWsReady]);
+
+
+  if (!isWsReady) {
+    return <div>loading...</div>;
+  }
 
   return <div>RoomID: {roomId}</div>;
 };

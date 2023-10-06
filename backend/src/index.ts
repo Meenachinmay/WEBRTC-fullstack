@@ -14,6 +14,13 @@ function sleep(ms: number) {
    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+const rooms: Record<string, string[]> = {};
+
+interface IRoomProps {
+  roomID: string,
+  peerID: string,
+}
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -30,14 +37,27 @@ io.on("connection", (socket) => {
   socket.on("create-room", async () => {
     await sleep(3000);
     const roomID = uuidv4();
+    rooms[roomID] = [];
     socket.emit("room-created", { roomID });
     console.log(
       `User created the room with the connction id ${socket.id}. RoomID: ${roomID} sent back to user.`
     );
   });
 
-  socket.on('room-joined', ({roomId}: {roomId: string}) => {
-    console.log(`User with socketID: ${socket.id} joined the room with roomID ${roomId}.`)
+  socket.on('joined-room', ({roomID, peerID}: IRoomProps) => {
+    console.log(`User with socketID: ${socket.id} and peerID: ${peerID} joined the room with roomID ${roomID}.`)
+
+    // check it the room with the given roomID exists in the rooms object
+    if (!rooms[roomID]) {
+      rooms[roomID] = [];
+    }
+
+    rooms[roomID].push(peerID);
+    socket.join(roomID);
+    socket.emit('get-users', {
+      roomID, 
+      participants: rooms[roomID],
+    })
   })
 
   socket.on("disconnect", () => {
