@@ -10,8 +10,8 @@ const app = express();
 
 app.use(cors());
 
-function sleep(ms) {
-   return new Promise(resolve => setTimeout(resolve, ms)); 
+function sleep(ms: number) {
+   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 const server = http.createServer(app);
